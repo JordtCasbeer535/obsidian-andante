@@ -10,7 +10,6 @@ export class AndanteSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		new Setting(containerEl).setName("Andante").setHeading();
 
 		new Setting(containerEl)
 			.setName("Default tempo")
@@ -19,7 +18,6 @@ export class AndanteSettingTab extends PluginSettingTab {
 				s
 					.setLimits(MIN_BPM, MAX_BPM, 1)
 					.setValue(this.plugin.settings.bpm)
-					.setDynamicTooltip()
 					.onChange(async (v) => {
 						this.plugin.settings.bpm = clampBpm(v);
 						await this.plugin.saveSettings();
@@ -33,7 +31,6 @@ export class AndanteSettingTab extends PluginSettingTab {
 				s
 					.setLimits(MIN_BEATS, MAX_BEATS, 1)
 					.setValue(this.plugin.settings.beats)
-					.setDynamicTooltip()
 					.onChange(async (v) => {
 						this.plugin.settings.beats = clampBeats(v);
 						await this.plugin.saveSettings();
@@ -47,7 +44,6 @@ export class AndanteSettingTab extends PluginSettingTab {
 				s
 					.setLimits(0, 100, 1)
 					.setValue(Math.round(this.plugin.settings.volume * 100))
-					.setDynamicTooltip()
 					.onChange(async (v) => {
 						this.plugin.settings.volume = v / 100;
 						await this.plugin.saveSettings();
