@@ -1,6 +1,6 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { MetronomeEngine } from "./engine";
-import { clampBeats, clampBpm, MAX_BEATS, MAX_BPM, MIN_BEATS, MIN_BPM } from "./settings";
+import { clampBeats, clampBpm, MAX_BPM, MIN_BPM } from "./settings";
 import type AndantePlugin from "./main";
 
 export const VIEW_TYPE_ANDANTE = "andante-metronome-view";
