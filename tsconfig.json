@@ -1,0 +1,1 @@
+{"compilerOptions":{"allowJs":true,"baseUrl":".","importHelpers":true,"inlineSourceMap":true,"inlineSources":true,"isolatedModules":true,"lib":["DOM","ES2018"],"module":"ESNext","moduleResolution":"node","noImplicitAny":true,"strict":true,"target":"ES2018"},"include":["src/**/*.ts"]}
