@@ -10,7 +10,7 @@ export class AndanteSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "Andante" });
+		new Setting(containerEl).setName("Andante").setHeading();
 
 		new Setting(containerEl)
 			.setName("Default tempo")
