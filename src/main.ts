@@ -62,6 +62,5 @@ export default class AndantePlugin extends Plugin {
 			leaf = workspace.getRightLeaf(false);
 			if (leaf) await leaf.setViewState({ type: VIEW_TYPE_ANDANTE, active: true });
 		}
-		if (leaf) workspace.revealLeaf(leaf);
 	}
 }
