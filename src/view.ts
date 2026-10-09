@@ -12,6 +12,17 @@ const ICON_STOP =
 const ICON_VOLUME =
 	'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z" fill="currentColor" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9.4 9.4 0 0 1 0 13"/></svg>';
 
+/**
+ * Attach an inline SVG icon without using innerHTML, so the markup
+ * stays inert and passes the community review linter.
+ */
+function setIcon(el: HTMLElement, svg: string): void {
+	el.empty();
+	const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+	const node = doc.documentElement;
+	if (node) el.appendChild(document.adoptNode(node));
+}
+
 export class MetronomeView extends ItemView {
 	private engine: MetronomeEngine;
 	private bpm: number;
@@ -68,7 +79,7 @@ export class MetronomeView extends ItemView {
 		tempo.createSpan({ cls: "andante-bpm-unit", text: "BPM" });
 
 		// Tempo slider
-		this.sliderEl = root.createEl("input", { cls: "andante-slider" }) as HTMLInputElement;
+		this.sliderEl = root.createEl("input", { cls: "andante-slider" });
 		this.sliderEl.type = "range";
 		this.sliderEl.min = String(MIN_BPM);
 		this.sliderEl.max = String(MAX_BPM);
@@ -85,7 +96,7 @@ export class MetronomeView extends ItemView {
 
 		this.playBtn = transport.createEl("button", { cls: "andante-play" });
 		this.playBtn.setAttribute("aria-label", "Start metronome");
-		this.playBtn.innerHTML = ICON_PLAY;
+		setIcon(this.playBtn, ICON_PLAY);
 		this.playBtn.addEventListener("click", () => this.toggle());
 
 		const plus = transport.createEl("button", { cls: "andante-step" });
@@ -118,8 +129,8 @@ export class MetronomeView extends ItemView {
 		// Volume
 		const volRow = root.createDiv({ cls: "andante-row andante-vol" });
 		const volIcon = volRow.createSpan({ cls: "andante-vol-icon" });
-		volIcon.innerHTML = ICON_VOLUME;
-		this.volSliderEl = volRow.createEl("input", { cls: "andante-slider andante-vol-slider" }) as HTMLInputElement;
+		setIcon(volIcon, ICON_VOLUME);
+		this.volSliderEl = volRow.createEl("input", { cls: "andante-slider andante-vol-slider" });
 		this.volSliderEl.type = "range";
 		this.volSliderEl.min = "0";
 		this.volSliderEl.max = "100";
@@ -145,7 +156,7 @@ export class MetronomeView extends ItemView {
 
 	private start(): void {
 		this.engine.start();
-		this.playBtn.innerHTML = ICON_STOP;
+		setIcon(this.playBtn, ICON_STOP);
 		this.playBtn.setAttribute("aria-label", "Stop metronome");
 		this.playBtn.classList.add("andante-playing");
 		this.flashBeat(0);
@@ -153,7 +164,7 @@ export class MetronomeView extends ItemView {
 
 	private stop(): void {
 		this.engine.stop();
-		this.playBtn.innerHTML = ICON_PLAY;
+		setIcon(this.playBtn, ICON_PLAY);
 		this.playBtn.setAttribute("aria-label", "Start metronome");
 		this.playBtn.classList.remove("andante-playing");
 		this.clearDots();
