@@ -20,7 +20,8 @@
   "name": "obsidian-andante",
   "scripts": {
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-    "dev": "node esbuild.config.mjs"
+    "dev": "node esbuild.config.mjs",
+    "test": "node --test tests/*.test.cjs"
   },
-  "version": "1.0.3"
+  "version": "1.1.0"
 }

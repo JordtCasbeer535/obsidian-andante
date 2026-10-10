@@ -1,305 +1,197 @@
-/* Andante — an elegant metronome for Obsidian.
-   All colors come from Obsidian theme variables so the view
-   blends into any theme, light or dark. */
-
+/* Andante: an instrument panel, scoped to its own view and host theme. */
 .andante {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 20px;
-	padding: 28px 22px;
-	height: 100%;
-	overflow-y: auto;
-	user-select: none;
-	-webkit-user-select: none;
+	--andante-ink: var(--text-normal);
+	--andante-muted: var(--text-muted);
+	--andante-line: var(--background-modifier-border);
+	--andante-paper: var(--background-primary);
+	--andante-accent: #a55526;
+	--andante-tint: rgba(165, 85, 38, 0.10);
+	--andante-on-accent: #fffaf4;
+	padding: 0 !important;
+	overflow: auto;
+	color: var(--andante-ink);
+	background: var(--background-secondary);
+	container-type: inline-size;
 }
-
-/* ---------- beat dots ---------- */
-
-.andante-beats {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	min-height: 16px;
-	flex-wrap: wrap;
+.theme-dark .andante {
+	--andante-accent: #e9ac75;
+	--andante-tint: rgba(233, 172, 117, 0.12);
+	--andante-on-accent: #282019;
 }
-
-.andante-dot {
-	width: 9px;
-	height: 9px;
-	border-radius: 50%;
-	background-color: var(--background-modifier-border);
-	transition: background-color 0.1s ease, box-shadow 0.1s ease, transform 0.1s ease;
-}
-
-.andante-dot-downbeat {
-	width: 11px;
-	height: 11px;
-	background-color: transparent;
-	border: 1px solid var(--text-faint);
-}
-
-.andante-dot-on {
-	background-color: var(--interactive-accent);
-	box-shadow: 0 0 10px var(--interactive-accent);
-	transform: scale(1.3);
-}
-
-.andante-dot-downbeat.andante-dot-on {
-	border-color: var(--interactive-accent);
-}
-
-/* ---------- tempo readout ---------- */
-
-.andante-tempo {
-	display: flex;
-	align-items: baseline;
-	gap: 8px;
-	margin-top: 4px;
-}
-
-.andante-bpm-num {
-	font-size: 64px;
-	font-weight: 200;
-	line-height: 1;
-	letter-spacing: -0.02em;
-	color: var(--text-normal);
-	font-variant-numeric: tabular-nums;
-}
-
-.andante-bpm-num.andante-beat-pulse {
-	animation: andante-pulse 0.28s ease-out;
-}
-
-@keyframes andante-pulse {
-	0% { opacity: 0.55; }
-	100% { opacity: 1; }
-}
-
-.andante-bpm-unit {
-	font-size: 11px;
-	font-weight: 600;
-	letter-spacing: 0.18em;
-	text-transform: uppercase;
-	color: var(--text-faint);
-}
-
-/* ---------- sliders ---------- */
-
-.andante-slider {
-	-webkit-appearance: none;
-	appearance: none;
+.andante-shell {
+	box-sizing: border-box;
 	width: 100%;
-	max-width: 220px;
-	height: 3px;
-	border-radius: 2px;
-	background: var(--background-modifier-border);
+	max-width: 400px;
+	margin: 0 auto;
+	padding: 20px 22px 16px;
 	outline: none;
+}
+.andante-shell *, .andante-shell *::before, .andante-shell *::after { box-sizing: border-box; }
+.andante button {
+	font: inherit;
 	cursor: pointer;
-	margin: 0;
-	padding: 0;
-}
-
-.andante-slider::-webkit-slider-thumb {
-	-webkit-appearance: none;
-	appearance: none;
-	width: 15px;
-	height: 15px;
-	border-radius: 50%;
-	background: var(--text-normal);
-	border: none;
-	transition: transform 0.12s ease;
-}
-
-.andante-slider::-webkit-slider-thumb:hover {
-	transform: scale(1.2);
-}
-
-.andante-slider::-moz-range-thumb {
-	width: 15px;
-	height: 15px;
-	border-radius: 50%;
-	background: var(--text-normal);
-	border: none;
-}
-
-/* ---------- transport ---------- */
-
-.andante-transport {
-	display: flex;
-	align-items: center;
-	gap: 18px;
-}
-
-.andante-step {
-	width: 38px;
-	height: 38px;
-	border-radius: 50%;
-	border: 1px solid var(--background-modifier-border);
+	box-shadow: none;
+	color: var(--andante-ink);
 	background: transparent;
-	color: var(--text-muted);
-	font-size: 20px;
-	line-height: 1;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
-	padding: 0 0 2px 0;
+	border: 1px solid var(--andante-line);
+	transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
-
-.andante-step:hover {
-	border-color: var(--text-faint);
-	color: var(--text-normal);
-	background: var(--background-modifier-hover);
-}
-
-.andante-play {
-	width: 62px;
-	height: 62px;
-	border-radius: 50%;
-	border: none;
-	background: var(--interactive-accent);
-	color: var(--text-on-accent);
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: transform 0.15s ease, background 0.15s ease;
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
-}
-
-.andante-play:hover {
-	background: var(--interactive-accent-hover);
-	transform: scale(1.05);
-}
-
-.andante-play:active {
-	transform: scale(0.97);
-}
-
-.andante-play svg {
-	width: 26px;
-	height: 26px;
-}
-
-.andante-play.andante-playing {
-	background: var(--background-modifier-border);
-	color: var(--text-muted);
+.andante button:hover { background: var(--andante-tint); border-color: var(--andante-accent); }
+.andante button:active { transform: translateY(1px); }
+.andante button:disabled { cursor: default; opacity: 0.35; transform: none; }
+.andante button:disabled:hover { background: transparent; border-color: var(--andante-line); }
+.andante button:focus-visible, .andante select:focus-visible, .andante input:focus-visible {
+	outline: 2px solid var(--andante-accent);
+	outline-offset: 3px;
 	box-shadow: none;
 }
-
-.andante-play.andante-playing:hover {
-	background: var(--background-modifier-border-hover, var(--background-modifier-border));
-	color: var(--text-normal);
-}
-
-/* ---------- rows: tap / beats / volume ---------- */
-
-.andante-row {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 14px;
-	width: 100%;
-	max-width: 220px;
-}
-
-.andante-tap {
-	flex: 1;
-	padding: 9px 0;
-	border-radius: var(--radius-m);
-	border: 1px solid var(--background-modifier-border);
-	background: transparent;
-	color: var(--text-muted);
-	font-size: 13px;
-	font-weight: 500;
-	letter-spacing: 0.06em;
-	cursor: pointer;
-	transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
-}
-
-.andante-tap:hover {
-	background: var(--background-modifier-hover);
-	color: var(--text-normal);
-}
-
-.andante-tap-hit {
-	animation: andante-tap-hit 0.18s ease-out;
-}
-
-@keyframes andante-tap-hit {
-	0% { background: var(--background-modifier-active-hover); }
-	100% { background: transparent; }
-}
-
-.andante-beats-ctl {
-	flex: 1;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 8px;
-	padding: 6px 4px;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: var(--radius-m);
-}
-
-.andante-mini {
-	width: 26px;
-	height: 26px;
+.andante svg { width: 17px; height: 17px; flex-shrink: 0; }
+.andante-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.andante-wordmark { font: italic 30px/1.1 Georgia, "Times New Roman", serif; letter-spacing: -1px; }
+.andante-eyebrow { color: var(--andante-muted); font-size: 10px; letter-spacing: 0.14em; line-height: 1.5; }
+.andante-header .andante-eyebrow { margin-top: 6px; }
+.andante-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--andante-muted); white-space: nowrap; }
+.andante-status::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--andante-muted); }
+.is-playing .andante-status { color: var(--andante-accent); }
+.is-playing .andante-status::before { background: var(--andante-accent); box-shadow: 0 0 0 4px var(--andante-tint); }
+.andante-hero { padding: 22px 0 20px; }
+.andante-dial {
+	--tempo-turn: 0.25turn;
+	width: 184px;
+	height: 184px;
+	margin: 0 auto 16px;
+	padding: 3px;
 	border-radius: 50%;
-	border: none;
+	background: conic-gradient(from 225deg, var(--andante-accent) 0turn var(--tempo-turn), var(--andante-line) var(--tempo-turn) 0.75turn, transparent 0.75turn);
+	position: relative;
+}
+.andante-dial::after {
+	content: "";
+	position: absolute;
+	inset: 10px;
+	border: 1px solid var(--andante-line);
+	border-radius: 50%;
+	pointer-events: none;
+	opacity: 0.55;
+}
+.andante-dial-face { height: 100%; border-radius: 50%; background: var(--andante-paper); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.andante input.andante-bpm-input {
+	width: 166px;
+	height: 68px;
+	padding: 0;
+	margin: 0;
+	font: 60px/1 Georgia, "Times New Roman", serif;
+	font-variant-numeric: lining-nums tabular-nums;
+	letter-spacing: -4px;
+	text-align: center;
+	color: var(--andante-ink);
 	background: transparent;
-	color: var(--text-muted);
-	font-size: 16px;
-	line-height: 1;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0 0 2px 0;
+	border: none;
+	border-radius: 6px;
+	box-shadow: none;
+	-moz-appearance: textfield;
 }
-
-.andante-mini:hover {
-	background: var(--background-modifier-hover);
-	color: var(--text-normal);
-}
-
-.andante-beats-num-wrap {
-	display: flex;
-	align-items: baseline;
-	gap: 5px;
-	min-width: 52px;
-	justify-content: center;
-}
-
-.andante-beats-num {
-	font-size: 20px;
-	font-weight: 500;
-	color: var(--text-normal);
-	font-variant-numeric: tabular-nums;
-}
-
-.andante-beats-label {
-	font-size: 10px;
-	letter-spacing: 0.14em;
-	text-transform: uppercase;
-	color: var(--text-faint);
-}
-
-.andante-vol-icon {
-	color: var(--text-faint);
-	display: flex;
-	align-items: center;
-}
-
-.andante-vol-icon svg {
-	width: 16px;
-	height: 16px;
-}
-
-.andante-vol-slider {
-	max-width: none;
+.andante-bpm-input::-webkit-inner-spin-button, .andante-bpm-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.andante-bpm-unit { color: var(--andante-accent); font-size: 10px; font-weight: 600; letter-spacing: 0.2em; }
+.andante-tempo-mark { margin-top: 10px; color: var(--andante-muted); font: italic 13px/1.2 Georgia, serif; }
+.andante-tempo-scale { display: flex; align-items: center; gap: 12px; color: var(--andante-muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.andante input.andante-slider {
+	--range-fill: 50%;
+	appearance: none;
+	-webkit-appearance: none;
 	flex: 1;
+	min-width: 0;
+	width: 100%;
+	height: 4px;
+	margin: 10px 0;
+	padding: 0;
+	border: 0;
+	border-radius: 4px;
+	background: linear-gradient(to right, var(--andante-accent) 0 var(--range-fill), var(--andante-line) var(--range-fill) 100%);
+	box-shadow: none;
+	cursor: pointer;
+}
+.andante-slider::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 13px; height: 13px; border: 2px solid var(--andante-paper); border-radius: 50%; background: var(--andante-accent); box-shadow: 0 0 0 1px var(--andante-accent); }
+.andante-slider::-moz-range-thumb { width: 10px; height: 10px; border: 2px solid var(--andante-paper); border-radius: 50%; background: var(--andante-accent); }
+.andante-transport { display: grid; grid-template-columns: 42px minmax(0, 1fr) 42px; gap: 10px; margin-top: 14px; }
+.andante button.andante-step { height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0; }
+.andante button.andante-play { height: 44px; display: flex; align-items: center; justify-content: center; gap: 9px; border-radius: 10px; background: var(--andante-accent); border-color: var(--andante-accent); color: var(--andante-on-accent); font-size: 13px; font-weight: 600; }
+.andante button.andante-play:hover { filter: brightness(1.08); }
+.andante-play-icon { display: flex; }
+.andante-play-icon svg { width: 16px; height: 16px; fill: currentColor; stroke-width: 1.5; }
+.is-playing .andante-play-icon svg { width: 13px; height: 13px; }
+.andante button.andante-tap { width: 100%; height: 34px; margin-top: 10px; border-radius: 8px; font-size: 11px; letter-spacing: 0.04em; color: var(--andante-muted); }
+.andante-tap.is-tapped { animation: andante-tap 220ms ease-out; }
+@keyframes andante-tap { from { background: var(--andante-tint); border-color: var(--andante-accent); } to { background: transparent; } }
+.andante-section { padding: 14px 0; border-top: 1px solid var(--andante-line); }
+.andante h3.andante-section-title { margin: 0 0 10px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: var(--andante-ink); }
+.andante-control-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.andante-control-label { color: var(--andante-muted); font-size: 11px; }
+.andante-beat-stepper { display: flex; align-items: center; gap: 7px; }
+.andante-beat-stepper > span { min-width: 20px; text-align: center; font-variant-numeric: tabular-nums; font-size: 15px; }
+.andante button.andante-icon-button { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 30px; width: 30px; height: 30px; padding: 0; border-radius: 7px; }
+.andante-beat-stepper .andante-icon-button { border: none; width: 26px; height: 26px; flex-basis: 26px; }
+.andante-beat-stepper svg { width: 13px; height: 13px; }
+.andante-beat-bar { display: flex; gap: 5px; margin-top: 12px; }
+.andante button.andante-beat { flex: 1 1 0; min-width: 0; height: 42px; padding: 0; position: relative; border-radius: 7px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.andante-beat::before { content: ""; position: absolute; top: 6px; left: 50%; transform: translateX(-50%); height: 2px; width: 4px; border-radius: 1px; background: var(--andante-muted); }
+.andante button.andante-beat.is-accent { color: var(--andante-accent); border-color: var(--andante-accent); background: var(--andante-tint); }
+.andante-beat.is-accent::before { width: 12px; background: var(--andante-accent); }
+.andante button.andante-beat.is-mute { color: var(--andante-muted); border-style: dashed; opacity: 0.6; }
+.andante-beat.is-mute::before { background: transparent; }
+.andante button.andante-beat.is-current { background: var(--andante-accent); color: var(--andante-on-accent); border-color: var(--andante-accent); opacity: 1; }
+.andante-beat.is-current::before { background: var(--andante-on-accent); }
+.andante-beat-help { display: flex; justify-content: space-between; align-items: center; gap: 5px; margin: 6px 0 8px; color: var(--andante-muted); font-size: 9px; line-height: 1.5; }
+.andante-beat-help .andante-icon-button { border: none; width: 22px; height: 22px; flex-basis: 22px; }
+.andante-beat-help svg { width: 12px; height: 12px; }
+.andante-sub-label { margin-bottom: 8px; }
+.andante-segments { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.andante-segments button { height: 46px; border-radius: 7px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 9px; color: var(--andante-muted); }
+.andante-segment-count { font: 16px/1 Georgia, serif; }
+.andante button.is-selected { background: var(--andante-tint); color: var(--andante-accent); border-color: var(--andante-accent); }
+.andante-sub-lights { height: 9px; display: flex; justify-content: center; gap: 5px; margin-top: 9px; }
+.andante-sub-lights span { width: 14px; height: 2px; margin-top: 3px; border-radius: 2px; background: var(--andante-line); }
+.andante-sub-lights span.is-current { background: var(--andante-accent); }
+.andante-sound-options { display: flex; gap: 6px; }
+.andante-sound-options button { flex: 1; height: 30px; border-radius: 7px; padding: 0 6px; font-size: 11px; }
+.andante-volume-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.andante-volume-row .andante-icon-button { border: none; }
+.andante-volume-value { min-width: 32px; text-align: right; color: var(--andante-muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.andante select { min-width: 0; height: 30px; font: inherit; font-size: 11px; color: var(--andante-ink); border: 1px solid var(--andante-line); border-radius: 7px; box-shadow: none; background-color: var(--andante-paper); padding-left: 9px; }
+.andante-control-row > label { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
+.andante select.andante-duration-select { max-width: 120px; }
+.andante-clock { display: flex; justify-content: space-between; align-items: flex-end; margin: 17px 0 10px; gap: 8px; }
+.andante-time { font: 30px/1.15 Georgia, serif; font-variant-numeric: lining-nums tabular-nums; margin-top: 5px; letter-spacing: -0.5px; }
+.andante-measures { color: var(--andante-muted); font-size: 11px; padding-bottom: 4px; }
+.andante-progress { display: block; appearance: none; -webkit-appearance: none; width: 100%; height: 3px; margin: 0 0 10px; border: none; border-radius: 4px; overflow: hidden; background: var(--andante-line); }
+.andante-progress[hidden] { display: none; }
+.andante-progress::-webkit-progress-bar { background: var(--andante-line); }
+.andante-progress::-webkit-progress-value { background: var(--andante-accent); }
+.andante-progress::-moz-progress-bar { background: var(--andante-accent); }
+.andante-help { color: var(--andante-muted); font-size: 10px; line-height: 1.7; }
+.andante-preset-row { display: flex; gap: 6px; }
+.andante-preset-row select { width: 100%; flex: 1; }
+.andante-keyboard-hint { padding: 6px 0 2px; font-size: 9px; color: var(--andante-muted); text-align: center; line-height: 1.8; }
+.andante-preset-modal input { width: 100%; }
+.andante-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+@container (min-width: 390px) {
+	.andante-hero { display: grid; grid-template-columns: 174px minmax(0, 1fr); grid-template-areas: "dial transport" "dial tap" "scale scale"; gap: 12px 16px; align-items: center; }
+	.andante-dial { grid-area: dial; width: 174px; height: 174px; margin: 0; }
+	.andante-transport { grid-area: transport; grid-template-columns: 28px minmax(0, 1fr) 28px; gap: 5px; margin: 0; align-self: end; }
+	.andante button.andante-step { height: 40px; border-radius: 7px; }
+	.andante button.andante-play { height: 40px; padding: 0 5px; gap: 5px; font-size: 11px; border-radius: 7px; }
+	.andante button.andante-tap { grid-area: tap; margin: 0; align-self: start; }
+	.andante-tempo-scale { grid-area: scale; margin-top: 2px; }
+}
+@container (max-width: 270px) {
+	.andante-shell { padding: 18px 14px; }
+	.andante-dial { width: 184px; height: 184px; }
+	.andante input.andante-bpm-input { font-size: 60px; height: 70px; }
+	.andante-wordmark { font-size: 26px; }
+	.andante-beat-bar { gap: 3px; }
+	.andante-beat.is-accent::before { width: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.andante button { transition: none; }
+	.andante-tap.is-tapped { animation: none; }
 }

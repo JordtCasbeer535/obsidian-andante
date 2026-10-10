@@ -1,1 +1,10 @@
-{"author": "JordtCasbeer535", "authorUrl": "https://github.com/JordtCasbeer535", "description": "An elegant metronome that lives in your sidebar.", "id": "andante", "isDesktopOnly": false, "minAppVersion": "1.4.0", "name": "Andante", "version": "1.0.3"}
+{
+  "author": "JordtCasbeer535",
+  "authorUrl": "https://github.com/JordtCasbeer535",
+  "description": "A practice metronome with subdivisions, beat accents, timed sessions and presets.",
+  "id": "andante",
+  "isDesktopOnly": false,
+  "minAppVersion": "1.4.0",
+  "name": "Andante",
+  "version": "1.1.0"
+}

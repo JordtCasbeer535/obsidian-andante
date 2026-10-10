@@ -1,109 +1,143 @@
-export type SoundKind = "click" | "woodblock";
+import type { BeatKind, Subdivision } from "./settings";
+
+export type SoundKind = "click" | "woodblock" | "soft";
 
 export interface EngineOptions {
 	getBpm: () => number;
 	getBeats: () => number;
-	getVolume: () => number; // 0..1
-	getAccent: () => boolean;
+	getVolume: () => number;
+	getBeatKind: (beat: number) => BeatKind;
+	getSubdivision: () => Subdivision;
 	getSound: () => SoundKind;
+	getDurationSeconds: () => number;
 }
 
-/**
- * A precise metronome engine built on the Web Audio API.
- *
- * Uses the classic lookahead scheduler pattern: a 25ms timer keeps the
- * audio clock fed ~150ms into the future, so timing stays rock solid
- * regardless of UI thread jitter.
- */
+/** Web Audio schedules sound ahead of the UI, including quiet subdivision clicks. */
 export class MetronomeEngine {
-	/** Called on the UI thread, aligned as closely as possible with each audible beat. */
-	onBeat: (beatIndex: number) => void = () => undefined;
-
+	onPulse: (beat: number, part: number, parts: number) => void = () => undefined;
+	onFinish: () => void = () => undefined;
 	private ctx: AudioContext | null = null;
 	private master: GainNode | null = null;
 	private timer: number | null = null;
+	private visualTimers = new Set<number>();
 	private nextTime = 0;
+	private startTime = 0;
+	private endTime = Infinity;
+	private stoppedElapsed = 0;
 	private beat = 0;
+	private part = 0;
+	private parts = 1;
 	private running = false;
 
 	constructor(private opts: EngineOptions) {}
 
-	get isRunning(): boolean {
-		return this.running;
+	get isRunning(): boolean { return this.running; }
+	get elapsedSeconds(): number {
+		return this.ctx && this.running
+			? Math.max(0, Math.min(this.ctx.currentTime, this.endTime) - this.startTime)
+			: this.stoppedElapsed;
 	}
 
-	start(): void {
-		if (this.running) return;
-		const AC: typeof AudioContext =
-			window.AudioContext ||
+	async start(): Promise<boolean> {
+		if (this.running) return false;
+		const AC: typeof AudioContext = window.AudioContext ||
 			(window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-		this.ctx = new AC();
-		if (this.ctx.state === "suspended") void this.ctx.resume();
-		this.master = this.ctx.createGain();
-		this.master.gain.value = 1;
-		this.master.connect(this.ctx.destination);
-		this.beat = 0;
-		this.nextTime = this.ctx.currentTime + 0.08;
+		if (!AC) throw new Error("Web Audio is unavailable");
+		const ctx = new AC();
+		this.ctx = ctx;
 		this.running = true;
-		this.timer = window.setInterval(() => this.tick(), 25);
+		this.stoppedElapsed = 0;
+		this.startTime = Infinity;
+		try {
+			if (ctx.state === "suspended") await ctx.resume();
+			// A stop or close may have occurred while the audio device was waking up.
+			if (this.ctx !== ctx || !this.running) return false;
+			this.master = ctx.createGain();
+			this.master.connect(ctx.destination);
+			this.beat = 0;
+			this.part = 0;
+			this.startTime = ctx.currentTime + 0.08;
+			this.nextTime = this.startTime;
+			const duration = this.opts.getDurationSeconds();
+			this.endTime = duration > 0 ? this.startTime + duration : Infinity;
+			this.timer = window.setInterval(() => this.tick(), 25);
+			this.tick();
+			return true;
+		} catch (error) {
+			if (this.ctx === ctx) this.stop();
+			throw error;
+		}
 	}
 
 	stop(): void {
+		this.stoppedElapsed = this.elapsedSeconds;
 		this.running = false;
-		if (this.timer !== null) {
-			window.clearInterval(this.timer);
-			this.timer = null;
-		}
-		if (this.ctx) {
-			this.ctx.close().catch(() => undefined);
-			this.ctx = null;
-			this.master = null;
-		}
+		if (this.timer !== null) window.clearInterval(this.timer);
+		this.timer = null;
+		for (const timer of this.visualTimers) window.clearTimeout(timer);
+		this.visualTimers.clear();
+		if (this.ctx) void this.ctx.close().catch(() => undefined);
+		this.ctx = null;
+		this.master = null;
+	}
+
+	resetElapsed(): void {
+		if (!this.running) this.stoppedElapsed = 0;
 	}
 
 	private tick(): void {
-		if (!this.ctx || !this.running) return;
-		const lookahead = 0.15;
-		while (this.nextTime < this.ctx.currentTime + lookahead) {
-			const beat = this.beat;
-			const when = this.nextTime;
-			this.playClick(beat, when);
-			// Mirror the audible beat onto the UI thread.
-			const delayMs = Math.max(0, (when - this.ctx.currentTime) * 1000);
+		if (!this.ctx || !this.master || !this.running) return;
+		if (this.ctx.currentTime >= this.endTime) {
+			this.stop();
+			this.onFinish();
+			return;
+		}
+		this.master.gain.setValueAtTime(Math.min(1, Math.max(0, this.opts.getVolume())), this.ctx.currentTime);
+		// Resume on a fresh measure after a long suspension, without a burst of overdue clicks.
+		if (this.nextTime < this.ctx.currentTime - 0.15) {
+			this.nextTime = this.ctx.currentTime + 0.02;
+			this.beat = this.part = 0;
+		}
+		// Repeated fractional intervals can land a fraction of a nanosecond before
+		// the deadline. Treat that as the boundary, rather than starting a new measure.
+		while (this.nextTime < this.ctx.currentTime + 0.15 && this.nextTime < this.endTime - 1e-7) {
+			if (this.part === 0) this.parts = this.opts.getSubdivision();
+			this.beat %= Math.max(1, this.opts.getBeats());
+			const beat = this.beat, part = this.part, parts = this.parts, when = this.nextTime;
+			this.playClick(this.opts.getBeatKind(beat), part, when);
 			const ctx = this.ctx;
-			window.setTimeout(() => {
-				if (this.running && this.ctx === ctx) this.onBeat(beat);
-			}, delayMs);
-			this.nextTime += 60 / Math.max(30, this.opts.getBpm());
-			this.beat = (this.beat + 1) % Math.max(1, this.opts.getBeats());
+			const timer = window.setTimeout(() => {
+				this.visualTimers.delete(timer);
+				if (this.running && this.ctx === ctx) this.onPulse(beat, part, parts);
+			}, Math.max(0, (when - ctx.currentTime) * 1000));
+			this.visualTimers.add(timer);
+			this.nextTime += 60 / Math.min(240, Math.max(30, this.opts.getBpm())) / this.parts;
+			this.part++;
+			if (this.part === this.parts) {
+				this.part = 0;
+				this.beat = (this.beat + 1) % Math.max(1, this.opts.getBeats());
+			}
 		}
 	}
 
-	private playClick(beat: number, when: number): void {
-		if (!this.ctx || !this.master) return;
-		const volume = this.opts.getVolume();
-		if (volume <= 0.001) return;
-
-		const accented = beat === 0 && this.opts.getAccent();
+	private playClick(kind: BeatKind, part: number, when: number): void {
+		if (!this.ctx || !this.master || kind === "mute") return;
+		const accented = part === 0 && kind === "accent";
 		const osc = this.ctx.createOscillator();
 		const gain = this.ctx.createGain();
-
-		if (this.opts.getSound() === "woodblock") {
-			osc.type = "triangle";
-			osc.frequency.setValueAtTime(accented ? 1244.5 : 830.6, when); // D#6 / G#5
-		} else {
-			osc.type = "sine";
-			osc.frequency.setValueAtTime(accented ? 1760 : 1174.7, when); // A6 / D6
-		}
-
-		const peak = Math.max(0.0011, 0.9 * volume);
+		const sound = this.opts.getSound();
+		osc.type = sound === "woodblock" ? "triangle" : "sine";
+		const base = sound === "woodblock" ? 830.6 : sound === "soft" ? 660 : 1174.7;
+		osc.frequency.setValueAtTime(base * (accented ? 1.5 : part > 0 ? 0.75 : 1), when);
+		const peak = part > 0 ? 0.22 : accented ? 0.85 : 0.55;
+		const tail = sound === "soft" ? 0.065 : 0.09;
 		gain.gain.setValueAtTime(0.0001, when);
 		gain.gain.exponentialRampToValueAtTime(peak, when + 0.003);
-		gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.09);
-
+		gain.gain.exponentialRampToValueAtTime(0.0001, when + tail);
 		osc.connect(gain);
 		gain.connect(this.master);
+		osc.onended = () => { osc.disconnect(); gain.disconnect(); };
 		osc.start(when);
-		osc.stop(when + 0.12);
+		osc.stop(when + tail + 0.01);
 	}
 }
